@@ -1,0 +1,33 @@
+PRODUCT SUPPORT DOCUMENTATION
+=============================
+
+ACCOUNT & SECURITY
+------------------
+Reset password: Go to Settings > Security > Reset Password.
+You will receive an email link to reset your password.
+Password must be at least 12 characters with uppercase, lowercase, and numbers.
+
+API KEYS
+--------
+API keys expire every 90 days and must be rotated manually.
+You can generate a new key in Settings > API Keys > Generate New Key.
+Keep your API keys secure; treat them like passwords.
+Rotating keys requires updating all integrations using the old key.
+
+BILLING & REFUNDS
+-----------------
+Refunds are available within 14 days for annual plans.
+Monthly plans are non-refundable but can be cancelled anytime.
+Refund requests must be submitted through Settings > Billing > Request Refund.
+
+ENTERPRISE FEATURES
+-------------------
+SSO is available on Enterprise plans only.
+You can enable SSO in Settings > Enterprise > Single Sign-On.
+Requires SAML 2.0 or OAuth 2.0 provider configuration.
+
+WEBHOOKS
+--------
+Webhook retries happen 5 times with exponential backoff.
+Initial retry: 1 minute, then doubles for each subsequent retry.
+Failed webhooks older than 7 days are automatically discarded.
