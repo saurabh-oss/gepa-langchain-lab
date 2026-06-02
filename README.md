@@ -57,6 +57,22 @@ mlflow ui --host 0.0.0.0 --port 5000
 
 Then visit `http://localhost:5000` in your browser to watch traces and experiments in real-time.
 
+## Optimization Strategy
+
+This boilerplate implements **two complementary optimization layers:**
+
+1. **Prompt Optimization (GEPA)** — Improves what the agent says
+   - Better answer quality and relevance
+   - Fewer hallucinations
+   - More consistent tone and format
+
+2. **Workflow Optimization (MEGA)** — Improves how the agent works
+   - Better routing decisions
+   - Optimal tool selection and ordering
+   - Trade-offs between retrieval and reasoning
+
+**Run both for comprehensive improvement.**
+
 ## Quick Start
 
 ### 1. Run the baseline app
@@ -83,7 +99,7 @@ python src/eval.py
 
 This runs the app on a fixed set of questions and logs outputs. Check MLflow UI to see traces.
 
-### 3. Optimize with GEPA
+### 3. Optimize prompts with GEPA
 
 ```bash
 python src/optimize.py
@@ -96,18 +112,32 @@ This runs GEPA for ~1-2 minutes. GEPA will:
 4. Keep a Pareto frontier of candidates
 5. Register the best prompt back to MLflow
 
-### 4. Compare before/after
+### 4. (Optional) Optimize workflow with MEGA
 
-Re-run the baseline app with the same questions:
+```bash
+python src/optimize_mega.py
+```
+
+This optimizes the agent workflow structure:
+1. Generate workflow variants (different routing, retrieval settings)
+2. Evaluate each variant on your eval set
+3. Score block-level performance
+4. Return best workflow configuration
+
+MEGA is optional but recommended for production agents.
+
+### 5. Compare results
+
+After running optimizations, re-run the baseline app:
 
 ```bash
 python src/app.py
 ```
 
-You should see:
-- More accurate, grounded answers
-- Fewer hallucinations
-- More consistent tone
+You should see improvements from both:
+- **GEPA**: More accurate, grounded answers
+- **MEGA**: Better routing and decision-making
+- **Combined**: Superior performance across metrics
 
 ## Project Structure
 
@@ -122,7 +152,8 @@ gepa-langchain-lab/
 │  ├─ ingest.py           # Vector store initialization
 │  ├─ app.py              # Baseline RAG application
 │  ├─ eval.py             # Evaluation harness
-│  └─ optimize.py         # GEPA optimization runner
+│  ├─ optimize.py         # GEPA prompt optimizer
+│  └─ optimize_mega.py    # MEGA workflow optimizer (optional)
 ├─ data/
 │  └─ sample_docs.txt     # Sample knowledge base
 └─ .gitignore
@@ -135,23 +166,32 @@ gepa-langchain-lab/
 │  Your LangChain RAG App (src/app.py)            │
 │  - Retriever: vector store                      │
 │  - Chain: retriever + LLM + prompt              │
-└────────────────┬────────────────────────────────┘
-                 │ Calls
-                 ▼
+└─────────────┬──────────────────┬────────────────┘
+              │ Calls            │ Calls
+              ▼                  ▼
+   ┌──────────────────┐  ┌────────────────────┐
+   │ MLflow Tracing   │  │ MLflow Tracing     │
+   │ (for GEPA)       │  │ (for MEGA)         │
+   └────────┬─────────┘  └────────┬───────────┘
+            │ Reads               │ Reads
+            ▼                     ▼
 ┌─────────────────────────────────────────────────┐
-│  MLflow (Tracing + Registry)                    │
-│  - Traces: inputs, outputs, reasoning           │
-│  - Metrics: accuracy, tokens, latency           │
-│  - Prompts: versioned in registry               │
-└────────────────┬────────────────────────────────┘
-                 │ Reads traces & metrics
-                 ▼
-┌─────────────────────────────────────────────────┐
-│  GEPA Optimizer (src/optimize.py)               │
-│  - Reflection: LLM reads traces, proposes fixes │
-│  - Evolution: genetic algorithm explores space  │
-│  - Pareto: keeps best prompt variants           │
+│  Evaluation Harness (src/eval.py)               │
+│  - Fixed test set with expected answers         │
+│  - Shared by both GEPA and MEGA                 │
 └─────────────────────────────────────────────────┘
+            │ Evaluates
+            ├─────────────────┬──────────────────┐
+            ▼                 ▼                  ▼
+┌───────────────────┐ ┌──────────────────────────┐
+│ GEPA Optimizer    │ │ MEGA Optimizer           │
+│ (src/optimize.py) │ │ (src/optimize_mega.py)   │
+├───────────────────┤ ├──────────────────────────┤
+│ Optimizes:        │ │ Optimizes:               │
+│ - Prompts         │ │ - Workflow routing       │
+│ - System config   │ │ - Tool selection         │
+│ - Answer template │ │ - Retrieval settings     │
+└───────────────────┘ └──────────────────────────┘
 ```
 
 ## Key concepts
@@ -172,9 +212,26 @@ GEPA doesn't need to differentiate through your model. Instead:
 - Uses explicit evaluation metrics (LLM-based, rule-based, human-graded)
 - More sample-efficient than RL (~35× fewer evals in benchmarks)
 
+### Prompt vs. Workflow Optimization
+
+**GEPA (Prompt Optimization):**
+- What the agent *says*
+- Improves answer quality, tone, formatting
+- Works on textual parameters
+- ~35× more sample-efficient than RL
+
+**MEGA (Workflow Optimization):**
+- How the agent *works*
+- Optimizes routing, tool selection, decision logic
+- Works on structural parameters
+- Block-level performance scoring
+- Complements GEPA for comprehensive improvement
+
+**Use Together:** Run GEPA first to improve answers, then MEGA to improve routing.
+
 ### Why Groq?
 
-Groq makes the tutorial better because:
+Groq makes the boilerplate better because:
 - **Speed**: faster inference means quicker optimization loops
 - **Cost**: free tier is generous
 - **Simplicity**: LangChain integration is seamless
@@ -197,10 +254,38 @@ Groq makes the tutorial better because:
 - Edit `BASE_SYSTEM_PROMPT` in `src/prompts.py`
 - Adjust retrieval template in `src/app.py` prompt chain
 
-### 5. Add Production Integrations
+### 5. Extend Workflow Optimization (MEGA)
+
+MEGA is optional but powerful for production agents. Customize it by:
+- Adding new workflow variants in `WorkflowOptimizer.generate_variants()`
+- Implementing custom block-level scorers
+- Adding constraints (latency, cost limits)
+- Integrating tool selection and reranking logic
+
+Example custom variant:
+```python
+def generate_variants(self):
+    # ... existing variants ...
+    
+    # Custom variant: my_strategy
+    custom = {
+        "name": "my_strategy",
+        "blocks": {...},
+        "routing": {
+            "when_to_retrieve": "selective",
+            "max_retrieval_docs": 2,
+            "use_reranker": True,
+        }
+    }
+    variants.append(custom)
+```
+
+### 6. Add Production Integrations
 - Run `src/optimize.py` on a schedule (cron, DAG, etc.)
+- Run `src/optimize_mega.py` after GEPA completes
 - Integrate MLflow UI with your monitoring stack
-- Add persistence layer for prompt versions
+- Persist optimized prompts and workflows
+- Monitor both GEPA and MEGA improvements over time
 
 ## Resources
 
