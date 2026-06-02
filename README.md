@@ -1,36 +1,27 @@
-# GEPA + LangChain Tutorial: Production RAG Assistant
+# GEPA + LangChain Optimization Boilerplate
 
-This repo demonstrates how to build a production-grade LangChain RAG support copilot, trace it with MLflow, and automatically optimize its prompts using GEPA.
+A production-ready architectural boilerplate for building and automatically optimizing LangChain RAG applications using MLflow tracing and GEPA prompt optimization.
 
-## What you'll learn
+## Architecture
 
-- Build a simple but realistic RAG assistant with LangChain
-- Add MLflow tracing for observability and prompt versioning
-- Use GEPA to improve prompts against an evaluation set automatically
-- Compare baseline vs optimized behavior with metrics
-
-## Why this matters
-
-Most LLM apps start as prompt-driven demos. The real challenge is **improving quality systematically** as data grows. This tutorial shows a production-friendly optimization loop:
+This project implements a three-layer architecture for systematic LLM app improvement:
 
 ```
 Build (LangChain) → Measure (MLflow) → Optimize (GEPA) → Repeat
 ```
 
-## Architecture overview
+**Components:**
+- **LangChain** (`src/app.py`): Retrieval + generation orchestration
+- **MLflow** (auto-integrated): Execution tracing, metrics, and prompt versioning
+- **GEPA** (`src/optimize.py`): Evolutionary prompt optimization with reflection
 
-- **LangChain**: orchestrates retrieval + generation (the execution layer)
-- **MLflow**: tracing, experiment tracking, and prompt registry (the observability layer)
-- **GEPA**: evolutionary prompt optimization using reflection (the improvement layer)
+## Applicable Use Cases
 
-## Use cases
-
-This pattern applies to any LLM app needing systematic improvement:
-
-- Support copilots over knowledge bases
-- Internal HR / IT / compliance assistants
-- Developer copilots over code + docs
-- Workflow agents that retrieve data then call tools
+This boilerplate generalizes to any retrieval-augmented LLM application:
+- Support/customer service agents
+- Internal knowledge assistants (HR, IT, compliance)
+- Developer documentation assistants
+- Tool-using workflows with retrieval
 
 ## Setup
 
@@ -66,9 +57,9 @@ mlflow ui --host 0.0.0.0 --port 5000
 
 Then visit `http://localhost:5000` in your browser to watch traces and experiments in real-time.
 
-## Run the tutorial
+## Quick Start
 
-### Step 1: Run the baseline app
+### 1. Run the baseline app
 
 ```bash
 python src/app.py
@@ -84,7 +75,7 @@ Example questions:
 - "Can I get a refund after 20 days?"
 - "Is SSO available for all plans?"
 
-### Step 2: Run the evaluation set
+### 2. Run the evaluation set
 
 ```bash
 python src/eval.py
@@ -92,7 +83,7 @@ python src/eval.py
 
 This runs the app on a fixed set of questions and logs outputs. Check MLflow UI to see traces.
 
-### Step 3: Optimize with GEPA
+### 3. Optimize with GEPA
 
 ```bash
 python src/optimize.py
@@ -105,7 +96,7 @@ This runs GEPA for ~1-2 minutes. GEPA will:
 4. Keep a Pareto frontier of candidates
 5. Register the best prompt back to MLflow
 
-### Step 4: Compare before/after
+### 4. Compare before/after
 
 Re-run the baseline app with the same questions:
 
@@ -118,23 +109,23 @@ You should see:
 - Fewer hallucinations
 - More consistent tone
 
-## File structure
+## Project Structure
 
 ```
 gepa-langchain-lab/
-├─ README.md                 # This file
-├─ requirements.txt          # Dependencies
-├─ .env.example              # Template for environment variables
+├─ README.md              # This file
+├─ requirements.txt       # Python dependencies
+├─ .env.example           # Environment template
 ├─ src/
-│  ├─ prompts.py            # Prompt templates
-│  ├─ ingest.py             # Vector store setup
-│  ├─ app.py                # Baseline RAG app (run interactively)
-│  ├─ eval.py               # Evaluation harness
-│  └─ optimize.py           # GEPA optimization loop
+│  ├─ __init__.py         # Package marker
+│  ├─ prompts.py          # Prompt templates
+│  ├─ ingest.py           # Vector store initialization
+│  ├─ app.py              # Baseline RAG application
+│  ├─ eval.py             # Evaluation harness
+│  └─ optimize.py         # GEPA optimization runner
 ├─ data/
-│  └─ sample_docs.txt       # Sample knowledge base
-└─ scripts/
-   └─ video_recording_notes.md  # Recording plan
+│  └─ sample_docs.txt     # Sample knowledge base
+└─ .gitignore
 ```
 
 ## Architecture diagram
@@ -188,24 +179,28 @@ Groq makes the tutorial better because:
 - **Cost**: free tier is generous
 - **Simplicity**: LangChain integration is seamless
 
-## Notes for recording a video
+## Customization Guide
 
-See `scripts/video_recording_notes.md` for a 10–12 minute script structure.
+### 1. Replace Sample Data
+- Update `data/sample_docs.txt` or modify `src/ingest.py` to load your documents
+- Adjust vector store (swap FAISS for Pinecone, Weaviate, etc.)
 
-### Key talking points
+### 2. Customize Evaluation Set
+- Edit `EVAL_SET` in `src/eval.py` with your real queries and expected answers
+- Add custom evaluation metrics beyond `Correctness` if needed
 
-1. "LangChain is how you **build** the agent."
-2. "MLflow is how you **measure** it."
-3. "GEPA is how you **improve** it automatically."
-4. "This pattern scales to any LLM app: support bots, copilots, workflow agents."
+### 3. Change LLM Providers
+- Replace `ChatGroq` in `src/app.py` with `ChatOpenAI`, `ChatAnthropic`, etc.
+- Update `src/optimize.py` reflection/scoring models as needed
 
-## Next steps
+### 4. Modify Prompts
+- Edit `BASE_SYSTEM_PROMPT` in `src/prompts.py`
+- Adjust retrieval template in `src/app.py` prompt chain
 
-- Expand the eval set with more real queries
-- Add custom evaluators (e.g., groundedness checks)
-- Integrate with a real vector DB (Pinecone, Weaviate, etc.)
-- Run GEPA on a schedule as new eval data comes in
-- Swap out Groq for your preferred LLM provider
+### 5. Add Production Integrations
+- Run `src/optimize.py` on a schedule (cron, DAG, etc.)
+- Integrate MLflow UI with your monitoring stack
+- Add persistence layer for prompt versions
 
 ## Resources
 
