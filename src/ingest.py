@@ -1,10 +1,8 @@
 """Vector store ingestion and setup."""
 
-import os
 from langchain_core.documents import Document
-from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.retrievers import BaseRetriever
+from langchain_core.callbacks.manager import CallbackManagerForRetrieverRun
 
 DOCS = [
     Document(
@@ -25,12 +23,22 @@ DOCS = [
 ]
 
 
+class SimpleRetriever(BaseRetriever):
+    """Simple keyword-based retriever for demo purposes."""
+
+    def _get_relevant_documents(self, query: str, *, run_manager: CallbackManagerForRetrieverRun = None):
+        """Retrieve documents based on keyword matching."""
+        query_lower = query.lower()
+        results = []
+        for doc in DOCS:
+            content_lower = doc.page_content.lower()
+            # Simple keyword matching
+            if any(word in content_lower for word in query_lower.split()):
+                results.append(doc)
+        # Return all docs if no matches found (fallback)
+        return results if results else DOCS[:3]
+
+
 def build_vectorstore():
-    """Create and return a FAISS vector store from sample documents."""
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=300,
-        chunk_overlap=50
-    )
-    chunks = splitter.split_documents(DOCS)
-    embeddings = OpenAIEmbeddings()
-    return FAISS.from_documents(chunks, embeddings)
+    """Create and return a simple retriever for demo purposes."""
+    return SimpleRetriever()
