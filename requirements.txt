@@ -4,8 +4,9 @@ langchain-community>=0.3.6,<0.4.0
 langchain-text-splitters>=0.3.2
 langchain-groq>=0.2.2
 langgraph>=0.2.40
-mlflow[genai]==2.17.1
+mlflow[genai]>=2.17.0
+protobuf>=3.20.0,<4.0.0
 gepa==0.1.1
-faiss-cpu==1.8.0
-python-dotenv==1.0.1
-pydantic==2.8.2
+faiss-cpu>=1.8.0
+python-dotenv>=1.0.1
+pydantic>=2.8.2
