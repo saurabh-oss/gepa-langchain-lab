@@ -16,8 +16,7 @@ mlflow.set_tracking_uri(
 mlflow.set_experiment("gepa-langchain-video")
 mlflow.langchain.autolog()
 
-vectorstore = build_vectorstore()
-retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+retriever = build_vectorstore()
 
 llm = ChatGroq(
     model="llama-3.1-70b-versatile",
