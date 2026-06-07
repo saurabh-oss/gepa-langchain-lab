@@ -54,3 +54,4 @@ htmlcov/
 .ipynb_checkpoints/
 *.ipynb
 VIDEO_DEMO_SCRIPT.md
+SHOWCASE.md
