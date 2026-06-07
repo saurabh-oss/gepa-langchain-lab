@@ -38,7 +38,9 @@ wheels/
 
 # MLflow
 mlruns/
+mlartifacts/
 .mlflow/
+mlflow.db
 
 # FAISS
 *.faiss
