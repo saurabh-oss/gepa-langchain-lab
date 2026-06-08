@@ -35,7 +35,7 @@ def build_retriever(documents: Optional[List[Document]] = None) -> BaseRetriever
                 "Either pass documents to build_retriever() or ensure demo module is available."
             )
 
-    return SimpleRetriever(documents)
+    return SimpleRetriever(documents=documents)
 
 
 class SimpleRetriever(BaseRetriever):

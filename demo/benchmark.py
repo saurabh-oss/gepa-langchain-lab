@@ -59,7 +59,7 @@ def run_benchmark():
             print("-" * 100)
             print(f"Expected Knowledge: {expected[:80]}...")
             print(f"Got: {predicted[:80]}...")
-            print(f"Match Score: {score:.0%} {'✓ Good' if score >= 0.7 else '✗ Needs improvement'}")
+            print(f"Match Score: {score:.0%} {'[OK] Good' if score >= 0.7 else '[XX] Needs improvement'}")
 
         except Exception as e:
             print(f"\n[Q{i}] {question}")
@@ -86,12 +86,12 @@ def run_benchmark():
     print("=" * 100)
 
     if avg_score >= 0.8:
-        print("\n✓ EXCELLENT: Baseline is performing very well!")
+        print("\n[OK] EXCELLENT: Baseline is performing very well!")
     elif avg_score >= 0.6:
-        print("\n⚠ GOOD: Baseline is decent but has room for improvement.")
+        print("\n[!] GOOD: Baseline is decent but has room for improvement.")
         print("  Run GEPA optimization to improve answer quality and relevance.")
     else:
-        print("\n✗ NEEDS IMPROVEMENT: Baseline could be much better.")
+        print("\n[XX] NEEDS IMPROVEMENT: Baseline could be much better.")
         print("  GEPA optimization should show clear improvements.")
 
     print("\nNext Steps:")
@@ -135,7 +135,7 @@ def compare_prompts():
 
     print("\nPrompt Strategies (what will be tested):\n")
     for name, prompt in prompts.items():
-        print(f"\n📋 {name}:")
+        print(f"\n[*] {name}:")
         print(f"   {prompt[:120]}...")
 
     print("\n" + "-" * 100)
@@ -145,14 +145,14 @@ def compare_prompts():
 
 if __name__ == "__main__":
     print("\n")
-    print("╔" + "═" * 98 + "╗")
-    print("║" + "GEPA + LangChain BENCHMARK TOOL".center(98) + "║")
-    print("║" + "Measure baseline performance before optimization".center(98) + "║")
-    print("╚" + "═" * 98 + "╝")
+    print("=" * 100)
+    print("GEPA + LangChain BENCHMARK TOOL".center(100))
+    print("Measure baseline performance before optimization".center(100))
+    print("=" * 100)
 
     result = run_benchmark()
     compare_prompts()
 
-    print("\n💡 TIP: After running python -m src.optimize, the prompts will be tested")
+    print("\n[*] TIP: After running python -m src.optimize, the prompts will be tested")
     print("   and the best one will be selected automatically.")
     print("\nTo see the optimized prompt in action, run: python -m src.app")
