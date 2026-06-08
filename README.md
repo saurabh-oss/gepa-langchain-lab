@@ -163,7 +163,24 @@ MEGA will:
 
 Expected result: ~81% answer match score (additional +3% over GEPA alone).
 
-**Step 4: See Results in Action**
+**Step 4: Measure Improvements with Scores**
+
+**macOS/Linux:**
+```bash
+python -m demo.benchmark
+```
+
+**Windows:**
+```powershell
+python -m demo.benchmark
+```
+
+This re-runs the baseline benchmark to show how much optimization improved the scores:
+- **Before GEPA**: ~62-65% match
+- **After GEPA**: ~78% match
+- **After MEGA**: ~81% match (+30% improvement)
+
+**Step 5: Try Interactive Demo (Optional)**
 
 **macOS/Linux:**
 ```bash
@@ -175,17 +192,15 @@ python -m src.app
 python -m src.app
 ```
 
-Interactive demo. Ask questions and see improvements:
-- More accurate answers
-- Better grounding in documents
-- Improved routing decisions (if MEGA was run)
+Interactive mode to test the optimized system:
+- Ask questions and see answers
+- Experience improvements firsthand
+- More accurate and grounded responses
 
-Example questions to try:
+Example questions:
 - "How do I reset my password?"
 - "What's your refund policy?"
 - "Which authentication methods are available?"
-
-**Full improvement flow: 62% → 81% (+30% over baseline)**
 
 ### Using Your Own Data
 
