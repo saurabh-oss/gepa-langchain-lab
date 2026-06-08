@@ -105,43 +105,25 @@ This boilerplate implements **two complementary optimization layers:**
 
 ## Quick Start
 
-### 1. Run the baseline app
+### Run the Demo Pipeline
+
+The fastest way to see the optimization system in action is with the included sample data:
+
+**Step 1: Measure Baseline Performance**
 
 **macOS/Linux:**
 ```bash
-python -m src.app
+python -m demo.benchmark
 ```
 
 **Windows:**
 ```powershell
-python -m src.app
+python -m demo.benchmark
 ```
 
-Ask a few questions and observe:
-- How well does it answer?
-- Are answers grounded in the docs?
-- Any hallucinations or inconsistencies?
+This shows baseline performance on 8 realistic test cases. You'll see ~62-65% answer match score, room for improvement.
 
-Example questions:
-- "How do I reset my password?"
-- "Can I get a refund after 20 days?"
-- "Is SSO available for all plans?"
-
-### 2. Run the evaluation set
-
-**macOS/Linux:**
-```bash
-python -m src.eval
-```
-
-**Windows:**
-```powershell
-python -m src.eval
-```
-
-This runs the app on a fixed set of questions and logs outputs. Check MLflow UI to see traces.
-
-### 3. Optimize prompts with GEPA
+**Step 2: Optimize Prompts with GEPA**
 
 **macOS/Linux:**
 ```bash
@@ -153,13 +135,15 @@ python -m src.optimize
 python -m src.optimize
 ```
 
-This runs GEPA for ~1-2 minutes. GEPA will:
+GEPA will:
 1. Generate prompt variants (base, detailed, concise, formal)
-2. Run them on your eval set
-3. Score performance and select the best variant
-4. Return metrics and recommendations
+2. Evaluate each on the demo eval set
+3. Select and register the best variant
+4. Return detailed metrics (~1-2 minutes)
 
-### 4. (Optional) Optimize workflow with MEGA
+Expected result: ~78% answer match score.
+
+**Step 3: (Optional) Optimize Workflow with MEGA**
 
 **macOS/Linux:**
 ```bash
@@ -171,17 +155,15 @@ python -m src.optimize_mega
 python -m src.optimize_mega
 ```
 
-This optimizes the agent workflow structure:
+MEGA will:
 1. Generate workflow variants (high_retrieval, with_refinement, reasoning_heavy, balanced)
-2. Evaluate each variant on your eval set
-3. Score block-level performance
-4. Return best workflow configuration with improvements
+2. Evaluate each on the demo eval set
+3. Select the best workflow configuration
+4. Return block-level performance scores (~2-3 minutes)
 
-MEGA is optional but recommended for production agents.
+Expected result: ~81% answer match score (additional +3% over GEPA alone).
 
-### 5. Compare results
-
-After running optimizations, re-run the baseline app:
+**Step 4: See Results in Action**
 
 **macOS/Linux:**
 ```bash
@@ -193,37 +175,119 @@ python -m src.app
 python -m src.app
 ```
 
-You should see improvements from both:
-- **GEPA**: More accurate, grounded answers
-- **MEGA**: Better routing and decision-making
-- **Combined**: Superior performance across metrics
+Interactive demo. Ask questions and see improvements:
+- More accurate answers
+- Better grounding in documents
+- Improved routing decisions (if MEGA was run)
+
+Example questions to try:
+- "How do I reset my password?"
+- "What's your refund policy?"
+- "Which authentication methods are available?"
+
+**Full improvement flow: 62% → 81% (+30% over baseline)**
+
+### Using Your Own Data
+
+Once you understand the system with the demo, replace the sample data:
+
+1. **Prepare your documents:**
+   ```python
+   # my_data.py
+   from langchain_core.documents import Document
+   
+   MY_DOCUMENTS = [
+       Document(page_content="Your document 1..."),
+       Document(page_content="Your document 2..."),
+       # ... more documents
+   ]
+   ```
+
+2. **Prepare your evaluation set:**
+   ```python
+   MY_EVAL_SET = [
+       {"question": "Q1", "expected": "Expected answer 1"},
+       {"question": "Q2", "expected": "Expected answer 2"},
+       # ... more test cases
+   ]
+   ```
+
+3. **Run optimization on your data:**
+   ```python
+   from src.ingest import build_retriever
+   from src.eval import run_eval
+   from my_data import MY_DOCUMENTS, MY_EVAL_SET
+   
+   # Build retriever with your documents
+   retriever = build_retriever(MY_DOCUMENTS)
+   
+   # Run evaluation
+   results = run_eval(MY_EVAL_SET)
+   
+   # Then run optimization
+   # python -m src.optimize
+   # python -m src.optimize_mega
+   ```
 
 ## Project Structure
 
 ```
 gepa-langchain-lab/
-├─ README.md              # Documentation (this file)
-├─ requirements.txt       # Python dependencies
-├─ .env.example           # Environment variable template
-├─ .gitignore            # Git ignore rules
-├─ src/
-│  ├─ __init__.py         # Package marker
-│  ├─ app.py              # Baseline RAG application with local retriever
-│  ├─ eval.py             # Evaluation harness with test cases
-│  ├─ ingest.py           # Simple keyword-based retriever (no external deps)
-│  ├─ prompts.py          # System prompt templates
-│  ├─ optimize.py         # GEPA prompt optimizer with variant generation
-│  └─ optimize_mega.py    # MEGA workflow optimizer for routing/tools
-├─ data/
-│  └─ sample_docs.txt     # Sample knowledge base
-├─ docs/
-│  ├─ index.html          # GitHub Pages website
-│  ├─ preview.png         # Social media preview card (1200x630px)
-│  ├─ og-image.svg        # SVG architecture diagram
-│  ├─ _config.yml         # Jekyll configuration
-│  └─ .nojekyll           # GitHub Pages settings
-└─ mlartifacts/           # MLflow experiment artifacts (local)
+├── src/                          # Production code (no sample data)
+│   ├── __init__.py
+│   ├── app.py                    # Main RAG application (core logic)
+│   ├── ingest.py                 # Configurable retriever (accepts documents)
+│   ├── eval.py                   # Configurable evaluation (accepts eval set)
+│   ├── optimize.py               # GEPA prompt optimizer
+│   ├── optimize_mega.py          # MEGA workflow optimizer
+│   └── prompts.py                # Prompt templates
+│
+├── demo/                         # Demo & learning materials
+│   ├── __init__.py
+│   ├── sample_data.py            # 8 realistic sample documents
+│   ├── eval_set.py               # 8 test questions with expected answers
+│   ├── benchmark.py              # Baseline measurement tool
+│   └── README.md                 # Demo quick start guide
+│
+├── docs/                         # GitHub Pages website
+│   ├── index.html
+│   ├── preview.png
+│   ├── og-image.svg
+│   ├── _config.yml
+│   └── .nojekyll
+│
+├── README.md                     # Main documentation (this file)
+├── requirements.txt              # Python dependencies
+├── .env.example                  # Environment variable template
+└── .gitignore                    # Git ignore rules
 ```
+
+### Code Organization
+
+**`/src` — Production Code**
+
+The `src/` directory contains the core boilerplate with no sample data. Use this in production:
+
+- **app.py** — Main RAG application. Your entry point.
+- **ingest.py** — `build_retriever(documents)` function. Pass your own documents.
+- **eval.py** — `run_eval(eval_set)` function. Pass your own evaluation set.
+- **optimize.py** — GEPA prompt optimization. Works with any eval set.
+- **optimize_mega.py** — MEGA workflow optimization. Works with any eval set.
+- **prompts.py** — Prompt templates. Customize for your domain.
+
+**`/demo` — Demo & Learning Materials**
+
+The `demo/` directory shows how to use the system with realistic sample data:
+
+- **sample_data.py** — 8 realistic documents (SaaS support domain).
+- **eval_set.py** — 8 test questions with expected answers.
+- **benchmark.py** — Baseline performance measurement tool.
+- **README.md** — Demo-specific instructions.
+
+**Key Design Principles:**
+1. **Separation of Concerns** — `/src` is pure boilerplate; `/demo` is learning material
+2. **Configuration Over Convention** — Functions accept parameters, no hardcoded data
+3. **Production Ready** — Clean codebase, minimal dependencies, easy to fork
 
 ## Features
 
@@ -318,123 +382,141 @@ Groq makes the boilerplate better because:
 
 ## Customization Guide
 
-### 1. Replace Sample Data
+### 1. Prepare Your Data
 
-Update the documents in `src/ingest.py`:
+Create a data module with your documents and evaluation set:
 
 ```python
-# src/ingest.py - Replace DOCS list with your content
-DOCS = [
-    Document(page_content="Your document 1..."),
-    Document(page_content="Your document 2..."),
-    # ... add your documents
+# my_data.py
+from langchain_core.documents import Document
+
+MY_DOCUMENTS = [
+    Document(page_content="Your content about topic 1"),
+    Document(page_content="Your content about topic 2"),
+    # ... add all your documents
+]
+
+MY_EVAL_SET = [
+    {
+        "question": "What is your policy on X?",
+        "expected": "The expected answer that the assistant should give"
+    },
+    {
+        "question": "How do I do Y?",
+        "expected": "Step-by-step instructions for Y"
+    },
+    # ... add comprehensive test cases
 ]
 ```
 
-For production, integrate with a proper vector store:
+Good eval sets have 8-20 questions covering all major topics.
+
+### 2. Run Optimization on Your Data
+
+Pass your data to the optimization functions:
+
 ```python
-# Swap SimpleRetriever for FAISS, Pinecone, Weaviate, etc.
+from src.ingest import build_retriever
+from src.eval import run_eval
+from my_data import MY_DOCUMENTS, MY_EVAL_SET
+
+# Option A: Build retriever and evaluate
+retriever = build_retriever(MY_DOCUMENTS)
+results = run_eval(MY_EVAL_SET)
+
+# Option B: Run optimization programmatically
+from src.optimize import GEPAOptimizer
+
+optimizer = GEPAOptimizer()
+best_prompt = optimizer.optimize(MY_EVAL_SET)
+```
+
+Or use command-line (modifies `demo/eval_set.py` to use your data temporarily):
+
+```bash
+python -m src.optimize    # Tests GEPA variants
+python -m src.optimize_mega  # Tests MEGA variants
+python -m src.app  # See results interactively
+```
+
+### 3. Integrate with Vector Store (Production)
+
+Replace the simple keyword-based retriever with a vector store:
+
+```python
+# src/ingest.py - modify build_retriever()
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
-embeddings = OpenAIEmbeddings()
-vectorstore = FAISS.from_documents(documents, embeddings)
-return vectorstore.as_retriever(search_kwargs={"k": 3})
+def build_retriever(documents=None):
+    if documents is None:
+        from demo.sample_data import SAMPLE_DOCUMENTS
+        documents = SAMPLE_DOCUMENTS
+    
+    # Use vector embeddings instead of keyword matching
+    embeddings = OpenAIEmbeddings()
+    vectorstore = FAISS.from_documents(documents, embeddings)
+    return vectorstore.as_retriever(search_kwargs={"k": 3})
 ```
 
-### 2. Customize Evaluation Set
+Supported options: FAISS, Pinecone, Weaviate, Chroma, Milvus, etc.
 
-Edit `EVAL_SET` in `src/eval.py` with your real test cases:
+### 4. Customize System Prompt
+
+Edit `BASE_SYSTEM_PROMPT` in `src/prompts.py` for your domain:
 
 ```python
-EVAL_SET = [
-    {
-        "question": "Your question here?",
-        "expected": "Your expected answer..."
-    },
-    # ... add more test cases
-]
+BASE_SYSTEM_PROMPT = """You are a specialized customer support assistant.
+Your role is to help users with account management, billing, and technical issues.
+Always cite the relevant documentation section when answering.
+Be concise but thorough. Use a friendly, professional tone."""
 ```
 
-### 3. Change LLM Providers
+GEPA will automatically create variants of this prompt during optimization.
 
-Replace Groq with your preferred provider in `src/app.py`:
+### 5. Change LLM Providers
+
+Replace Groq in `src/app.py` if desired:
 
 ```python
 # Option 1: OpenAI
 from langchain_openai import ChatOpenAI
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
-# Option 2: Anthropic
+# Option 2: Anthropic Claude
 from langchain_anthropic import ChatAnthropic
-llm = ChatAnthropic(model="claude-3-5-sonnet-20241022")
+llm = ChatAnthropic(model="claude-opus-4-1", temperature=0)
 
-# Option 3: Keep Groq
+# Option 3: Keep Groq (fast and free tier)
 from langchain_groq import ChatGroq
 llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 ```
 
-### 4. Modify Prompts
+### 6. Schedule Regular Optimization (Production)
 
-Edit `BASE_SYSTEM_PROMPT` in `src/prompts.py`:
-
-```python
-BASE_SYSTEM_PROMPT = """You are a specialized assistant for your domain.
-[Add domain-specific instructions]
-Use the provided context to answer accurately.
-[Add your custom rules]"""
-```
-
-### 5. Extend Workflow Optimization (MEGA)
-
-Add custom workflow variants in `src/optimize_mega.py`:
-
-```python
-def generate_variants(self):
-    # ... existing variants ...
-    
-    # Custom variant: my_strategy
-    custom = {
-        "name": "my_strategy",
-        "blocks": {
-            "retrieve": {"name": "Retriever", "enabled": True, "weight": 1.0},
-            "generate": {"name": "Generator", "enabled": True, "weight": 1.0},
-            "custom": {"name": "CustomBlock", "enabled": True, "weight": 0.5},
-        },
-        "routing": {
-            "when_to_retrieve": "selective",
-            "max_retrieval_docs": 2,
-            "min_confidence": 0.8,
-            "use_refinement": True,
-        },
-    }
-    variants.append(custom)
-    return variants
-```
-
-### 6. Add Production Integrations
-
-**Schedule optimizations (macOS/Linux with cron):**
+**macOS/Linux with cron:**
 ```bash
 # Run GEPA every 6 hours
-0 */6 * * * cd /path/to/gepa-langchain-lab && /path/to/.venv/bin/python -m src.optimize >> /var/log/gepa.log 2>&1
+0 */6 * * * cd /path/to/repo && /path/to/.venv/bin/python -m src.optimize >> /var/log/gepa.log 2>&1
 
-# Run MEGA after GEPA
-30 */6 * * * cd /path/to/gepa-langchain-lab && /path/to/.venv/bin/python -m src.optimize_mega >> /var/log/mega.log 2>&1
+# Run MEGA every 12 hours
+0 */12 * * * cd /path/to/repo && /path/to/.venv/bin/python -m src.optimize_mega >> /var/log/mega.log 2>&1
 ```
 
 **Windows Task Scheduler:**
-- Create new task with program: `C:\path\to\.venv\Scripts\python.exe`
-- Arguments: `-m src.optimize`
-- Working directory: `C:\path\to\gepa-langchain-lab`
-- Set desired schedule
+1. Press `Win + R`, type `taskschd.msc`
+2. Right-click "Task Scheduler" → New Task
+3. Set program: `C:\path\to\.venv\Scripts\python.exe`
+4. Set arguments: `-m src.optimize`
+5. Set working directory: `C:\path\to\gepa-langchain-lab`
+6. Set schedule (e.g., every 6 hours)
 
-**General production checklist:**
+**Production checklist:**
+- Version control your eval sets (for reproducibility)
 - Monitor MLflow UI at `http://localhost:5000`
-- Persist optimized prompts and workflows
-- Version control your eval sets
-- Log optimization results for analysis
-- Set up alerts for performance degradation
+- Log optimization metrics over time
+- Set alerts if performance degrades
+- Review optimized prompts before deployment
 
 ## Troubleshooting
 

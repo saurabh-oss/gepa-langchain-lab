@@ -66,4 +66,4 @@ With sample data, you'll see:
 4. Run the demo pipeline to optimize for your domain
 5. Integrate optimized prompts/workflows into production
 
-See [../README.md](../README.md) for full documentation.
+See [../README.md](../README.md) for full documentation including project structure, customization, and troubleshooting.
