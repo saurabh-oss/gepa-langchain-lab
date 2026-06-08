@@ -1,12 +1,19 @@
 """Benchmark and comparison tool for optimization improvements.
 
-Run this after GEPA optimization to see before/after results side-by-side.
+Demo script to show baseline performance before optimization.
+Run from repo root: python -m demo.benchmark
 """
 
 import os
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import src modules
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from dotenv import load_dotenv
 from src.app import answer
-from src.eval import EVAL_SET
+from demo.eval_set import SAMPLE_EVAL_SET as EVAL_SET
 from src.prompts import BASE_SYSTEM_PROMPT
 
 load_dotenv()
